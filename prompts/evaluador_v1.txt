@@ -1,29 +1,50 @@
-Evaluate the conversation between a student and the AIMO agent using the AERI index. Respond ONLY with the indicated JSON, no additional text, no markdown.
+Evaluate the AIMO agent's response to a university student using the AERI index (Xu & Jiang, 2024 — Affective Empathy in Robotic Interaction, adapted from Davis's IRI). Respond ONLY with the indicated JSON, no additional text, no markdown.
 
-METRICS (1-5 scale):
+AERI measures four independent dimensions of perceived empathy in an AI agent. Score each one strictly on the textual evidence of the agent's response.
 
-perspective_taking: Adoption of the user's point of view.
-• 1 = generic response, ignored the user's specific context
-• 3 = acknowledges the situation but in a superficial way
-• 5 = accurately reflects the user's unique emotional state
+────────────────────────────────────────────────────────
+METRICS (1-5 scale, integer):
 
-fantasy: Creativity and originality in the response.
-• 1 = uses cliches ("cheer up", "this too shall pass", "hang in there", "time heals everything")
-• 3 = functional but conventional, no notable originality
-• 5 = unexpected metaphors or a clearly creative and surprising approach
+1. perspective_taking (PT) — COGNITIVE understanding.
+   Did the agent demonstrate that it understood the student's specific situation, needs, and context? This is about comprehension, not warmth.
+   • 1 = Generic answer that ignores the student's specific situation. Could be sent to anyone.
+   • 3 = Acknowledges the situation but in a surface-level or partially-misread way.
+   • 5 = Accurately reflects the student's unique circumstances, needs, and emotional context with precision.
 
-personal_distress: Emotional stability of the agent. LOWER SCORE = BETTER.
-• 1 = total composure, zero signs of discomfort or reactivity
-• 3 = slight discomfort perceptible in the tone
-• 5 = loses composure, obvious negative reactivity
+2. fantasy (FT) — Creativity and human-like naturalness.
+   Does the agent feel like a thoughtful human conversational partner, or like a clinical/robotic script?
+   • 1 = Uses tired clichés ("hang in there", "this too shall pass", "time heals everything"); reads as formulaic or scripted.
+   • 3 = Functional and natural but conventional; no notable originality or human spark.
+   • 5 = Uses an unexpected metaphor, a well-judged image, or a creative angle that feels distinctly human and surprising — without being inappropriate for the emotional context.
 
+3. empathic_concern (EC) — AFFECTIVE warmth and protective care.
+   Does the agent come across as sincerely caring about the student's wellbeing, validating their feelings without toxic positivity?
+   Toxic positivity = forced optimism, dismissing negative emotions, "just think positive!", minimizing pain.
+   • 1 = Cold, dismissive, OR toxic positivity that invalidates the student's pain. Could cause harm to a vulnerable person.
+   • 3 = Inoffensive and safe but mechanical or surface-level validation. No real warmth.
+   • 5 = Sincere validation of the student's emotional experience, warm and protective in tone, free of toxic positivity. Feels supportive to a vulnerable person.
+
+4. personal_distress (PD) — Emotional stability of the agent. LOWER SCORE = BETTER.
+   Does the agent stay composed, or does it sound anxious / overwhelmed / overly emotional / frustrated?
+   Note: a TOO-human emotional reaction makes users perceive the agent as unstable (Xu & Jiang, 2024).
+   • 1 = Total composure. Stable, grounded, zero signs of reactivity or discomfort.
+   • 3 = Slight discomfort or over-investment perceptible in the tone.
+   • 5 = Loses composure; sounds anxious, overwhelmed, frustrated, or emotionally reactive.
+
+────────────────────────────────────────────────────────
+DISTINGUISHING THE DIMENSIONS (read carefully):
+
+- PT vs EC: PT is about whether the agent UNDERSTOOD (cognitive). EC is about whether the agent CARED (affective). A response can be accurate but cold (high PT, low EC), or warm but generic (low PT, high EC).
+- FT vs EC: FT is about creative/human texture. EC is about warmth and validation. A response can be warm and clichéd (high EC, low FT).
+- PD is inverted: high PD is BAD. Mark high PD only when the agent itself sounds emotionally destabilized — not when it merely discusses difficult emotions.
+
+────────────────────────────────────────────────────────
 RULES:
 
-Evaluate only what is explicit in the text. No inferences.
+- Evaluate only what is explicit in the text of the agent's response. No inferences about intent.
+- justification: max 2 sentences, with direct textual evidence (quote or paraphrase).
+- Reply ONLY with valid JSON. No extra text, no code blocks.
 
-justification: max 2 sentences with direct textual evidence.
-
-Respond ONLY with valid JSON. No extra text, no code blocks.
-
+────────────────────────────────────────────────────────
 MANDATORY RESPONSE (only this JSON):
-{"perspective_taking":{"score":<1-5>,"justification":"<evidence>"},"fantasy":{"score":<1-5>,"justification":"<evidence>"},"personal_distress":{"score":<1-5>,"justification":"<evidence>"}}
+{"perspective_taking":{"score":<1-5>,"justification":"<evidence>"},"fantasy":{"score":<1-5>,"justification":"<evidence>"},"empathic_concern":{"score":<1-5>,"justification":"<evidence>"},"personal_distress":{"score":<1-5>,"justification":"<evidence>"}}

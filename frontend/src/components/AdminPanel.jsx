@@ -9,11 +9,10 @@ import { useState, useEffect, useRef } from 'react'
 // ── Metrics tab ───────────────────────────────────────────────────────────────
 
 const METRICS = [
-  { key: 'perspective_taking',       label: 'Perspective Taking',       abbr: 'PT',  cls: 'g', note: '',              invert: false },
-  { key: 'fantasy',                  label: 'Fantasy',                  abbr: 'FT',  cls: 'g', note: '',              invert: false },
-  { key: 'personal_distress',        label: 'Personal Distress',        abbr: 'PD',  cls: 'r', note: '↓ menor=mejor', invert: true  },
-  { key: 'relevance',                label: 'Relevance',                abbr: 'REL', cls: 'c', note: '',              invert: false },
-  { key: 'semantically_appropriate', label: 'Semantically Approp.',     abbr: 'SA',  cls: 'c', note: '',              invert: false },
+  { key: 'perspective_taking', label: 'Perspective Taking', abbr: 'PT', cls: 'g', note: '',              invert: false },
+  { key: 'empathic_concern',   label: 'Empathic Concern',   abbr: 'EC', cls: 'g', note: '',              invert: false },
+  { key: 'fantasy',            label: 'Fantasy',            abbr: 'FT', cls: 'g', note: '',              invert: false },
+  { key: 'personal_distress',  label: 'Personal Distress',  abbr: 'PD', cls: 'r', note: '↓ menor=mejor', invert: true  },
 ]
 
 function ScoreBar({ score, cls, invert }) {
@@ -56,7 +55,7 @@ function EvalCard({ turn, evaluation, text }) {
       </div>
 
       <div className="ap-formula-hint">
-        Ponderado: PT×0.30 + REL×0.25 + (6−PD)×0.20 + SA×0.15 + FT×0.10
+        Ponderado: PT×0.30 + EC×0.30 + (6−PD)×0.25 + FT×0.15
       </div>
 
       <div className="ap-metrics-list">

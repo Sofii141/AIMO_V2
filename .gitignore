@@ -45,3 +45,7 @@ Thumbs.db
 .github/
 
 .src/__pycache__/
+
+data/*
+
+docs/*

@@ -275,10 +275,11 @@ AIMO/
 │   └── aimo.log                        # Log del sistema
 │
 ├── 📂 prompts/                         # Prompts de los agentes
-│   ├── aimo_answer.txt                 # System prompt del Agente 1
-│   ├── aimo_classifier.txt             # System prompt del Clasificador
-│   ├── aimo_recommendations.txt        # System prompt del Generador
-│   └── aimo_evaluador.txt              # Rúbrica para evaluación
+│   ├── aimo_answer.txt                 # System prompt del Agente de Contexto (Groq)
+│   ├── aimo_classifier.txt             # System prompt del Clasificador de Riesgo (Groq)
+│   ├── aimo_recommendations.txt        # System prompt del Generador de Recomendaciones (Bedrock)
+│   ├── evaluador_contexto_v1.txt       # Rúbrica de evaluación intermedia por turno (GPT-3.5)
+│   └── evaluador_v1.txt                # Rúbrica AERI de evaluación final — 4 dimensiones PT/FT/EC/PD (GPT-4)
 │
 ├── 📂 src/                             # Código del backend (Flask)
 │   ├── agente_aimo.py                  # Generador de respuestas (Groq)
@@ -381,16 +382,23 @@ Reinicia una sesión existente.
 
 ## 🧪 Evaluación de Empatía
 
-El sistema evalúa cada respuesta en **4 dimensiones** según la rúbrica de empatía de Davis (IRI - Interpersonal Reactivity Index):
+El sistema implementa el índice **AERI** (Xu & Jiang, 2024 — *Affective Empathy in Robotic Interaction*), una adaptación del IRI de Davis diseñada específicamente para asistentes conversacionales de IA. Cada respuesta final se evalúa en **4 dimensiones independientes** mediante un único llamado a GPT-4:
 
-| Dimensión | Rango | Descripción |
-|-----------|-------|-------------|
-| **Perspective Taking** | 1-5 | ¿Qué tan bien entiende AIMO el punto de vista del usuario? |
-| **Fantasy** | 1-5 | ¿Qué tan bien se imagina la situación del usuario? |
-| **Empathic Concern** | 1-5 | ¿Qué tan cálida y preocupada es la respuesta? |
-| **Personal Distress** | 1-5 | ¿Cómo maneja AIMO su propia reactividad emocional? |
+| Dimensión | Rango | Peso | Descripción |
+|-----------|-------|------|-------------|
+| **Perspective Taking (PT)** | 1-5 | 30% | Comprensión cognitiva: ¿el agente entendió la situación específica del estudiante? |
+| **Empathic Concern (EC)** | 1-5 | 30% | Calidez afectiva: ¿valida emociones con sinceridad y evita *toxic positivity*? |
+| **Personal Distress (PD)** | 1-5 (↓) | 25% | Estabilidad emocional del agente. **Menor = mejor**: penaliza respuestas ansiosas, reactivas o sobre-emocionales. |
+| **Fantasy (FT)** | 1-5 | 15% | Creatividad y naturalidad humana: ¿usa metáforas o se siente formulaico/robótico? |
 
-Cada dimensión incluye una **justificación detallada** del evaluador.
+**Score compuesto:**
+```
+composite = PT × 0.30 + EC × 0.30 + (6 − PD) × 0.25 + FT × 0.15
+```
+
+PT y EC son las dimensiones cognitiva y afectiva del soporte; PD se invierte porque alta reactividad emocional en el agente daña la percepción del usuario; FT recibe menos peso al no ser crítica en contextos clínicos.
+
+Cada dimensión incluye una **justificación textual** del evaluador. Adicionalmente, durante la fase de recolección de contexto se ejecuta una evaluación intermedia por turno con GPT-3.5 sobre 3 criterios complementarios (empatía, naturalidad, adecuación de la pregunta) descritos en `prompts/evaluador_contexto_v1.txt`.
 
 ---
 

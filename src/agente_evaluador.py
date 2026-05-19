@@ -8,8 +8,7 @@ Two evaluation modes:
      fast; designed for per-turn academic analysis without inflating costs.
 
   2. evaluar_interaccion (GPT-4) — called ONLY when final recommendations are
-     delivered (low/medium risk).  Full AERI + Relevance + Semantically
-     Appropriate battery.
+     delivered (low/medium risk).  Full AERI battery (PT, FT, EC, PD).
 
 Model choice rationale:
   - GPT-3.5-turbo for intermediate turns: ~15x cheaper than GPT-4, sufficient
@@ -17,8 +16,8 @@ Model choice rationale:
   - GPT-4 for final evaluation: maximum judge quality for the composite score
     used in academic reporting.
 
-Composite score weights (Xu & Jiang 2024; Abd-Alrazaq 2020):
-  PT=30%, REL=25%, PD=20%, SA=15%, FT=10%
+Composite score weights (Xu & Jiang, 2024 — AERI):
+  PT=30%, EC=30%, PD=25% (inverted), FT=15%
 """
 
 import os
@@ -196,80 +195,56 @@ def evaluar_interaccion(
         f"Respuesta del asistente (recomendaciones mostradas al estudiante):\n{model_response}"
     )
 
-    logger.info("Evaluación final con %s", OPENAI_EVAL_MODEL_FINAL)
+    logger.info("Evaluación final AERI con %s", OPENAI_EVAL_MODEL_FINAL)
 
-    # 1. AERI (PT, FT, PD)
     aeri_prompt = _load_prompt('evaluador_v1.txt')
     aeri_result = _call_evaluator(aeri_prompt, contenido_eval, "AERI", OPENAI_EVAL_MODEL_FINAL)
 
-    # 2. Relevance
-    rel_prompt = _load_prompt('relevance_v1.txt')
-    rel_prompt_filled = (
-        rel_prompt
-        .replace('{{User_Query}}',     contexto_texto)
-        .replace('{{Model_Response}}', model_response)
-    )
-    rel_result = _call_evaluator(rel_prompt_filled, contenido_eval, "Relevance", OPENAI_EVAL_MODEL_FINAL)
-
-    # 3. Semantically Appropriate
-    sa_prompt = _load_prompt('semantically_appropriate_v1.txt')
-    sa_prompt_filled = (
-        sa_prompt
-        .replace('{{User_Query}}',     contexto_texto)
-        .replace('{{Model_Response}}', model_response)
-    )
-    sa_result = _call_evaluator(sa_prompt_filled, contenido_eval, "Semantically Appropriate", OPENAI_EVAL_MODEL_FINAL)
-
-    # Combine
-    evaluation: dict = {}
-
-    if aeri_result:
-        for key in ('perspective_taking', 'fantasy', 'personal_distress'):
-            if key in aeri_result:
-                evaluation[key] = aeri_result[key]
-
-    if rel_result and 'score' in rel_result:
-        evaluation['relevance'] = rel_result
-
-    if sa_result and 'score' in sa_result:
-        evaluation['semantically_appropriate'] = sa_result
-
-    if not evaluation:
-        logger.warning("Ninguna métrica de evaluación final disponible")
+    if not aeri_result:
+        logger.warning("Evaluación final AERI no disponible")
         return None
 
-    # Composite score
+    evaluation: dict = {}
+    for key in ('perspective_taking', 'fantasy', 'empathic_concern', 'personal_distress'):
+        if key in aeri_result:
+            evaluation[key] = aeri_result[key]
+
+    if not evaluation:
+        logger.warning("Evaluación final AERI sin métricas válidas")
+        return None
+
+    # Composite score — AERI canonical 4-dimension weights
     METRIC_WEIGHTS = {
-        "perspective_taking":       0.30,
-        "personal_distress":        0.20,
-        "relevance":                0.25,
-        "semantically_appropriate": 0.15,
-        "fantasy":                  0.10,
+        "perspective_taking": 0.30,
+        "empathic_concern":   0.30,
+        "personal_distress":  0.25,  # inverted: (6 - score)
+        "fantasy":             0.15,
     }
 
     pt  = evaluation.get('perspective_taking', {}).get('score')
     ft  = evaluation.get('fantasy',            {}).get('score')
+    ec  = evaluation.get('empathic_concern',   {}).get('score')
     pd_ = evaluation.get('personal_distress',  {}).get('score')
-    rel = evaluation.get('relevance',          {}).get('score')
-    sa  = evaluation.get('semantically_appropriate', {}).get('score')
 
     weighted_sum = 0.0
     total_weight = 0.0
 
-    if pt  is not None:
-        weighted_sum += pt  * METRIC_WEIGHTS["perspective_taking"];  total_weight += METRIC_WEIGHTS["perspective_taking"]
-    if ft  is not None:
-        weighted_sum += ft  * METRIC_WEIGHTS["fantasy"];             total_weight += METRIC_WEIGHTS["fantasy"]
+    if pt is not None:
+        weighted_sum += pt * METRIC_WEIGHTS["perspective_taking"]
+        total_weight += METRIC_WEIGHTS["perspective_taking"]
+    if ec is not None:
+        weighted_sum += ec * METRIC_WEIGHTS["empathic_concern"]
+        total_weight += METRIC_WEIGHTS["empathic_concern"]
     if pd_ is not None:
-        weighted_sum += (6 - pd_) * METRIC_WEIGHTS["personal_distress"]; total_weight += METRIC_WEIGHTS["personal_distress"]
-    if rel is not None:
-        weighted_sum += rel * METRIC_WEIGHTS["relevance"];           total_weight += METRIC_WEIGHTS["relevance"]
-    if sa  is not None:
-        weighted_sum += sa  * METRIC_WEIGHTS["semantically_appropriate"]; total_weight += METRIC_WEIGHTS["semantically_appropriate"]
+        weighted_sum += (6 - pd_) * METRIC_WEIGHTS["personal_distress"]
+        total_weight += METRIC_WEIGHTS["personal_distress"]
+    if ft is not None:
+        weighted_sum += ft * METRIC_WEIGHTS["fantasy"]
+        total_weight += METRIC_WEIGHTS["fantasy"]
 
     composite = round(weighted_sum / total_weight, 2) if total_weight > 0 else None
     evaluation['composite_score']  = composite
-    evaluation['weighting_scheme'] = 'xu2024_abdAlrazaq2020'
+    evaluation['weighting_scheme'] = 'xu2024_aeri'
 
     logger.info("Composite score final: %s/5", composite)
     return evaluation

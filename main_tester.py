@@ -42,7 +42,7 @@ def _mostrar_evaluacion_final(ev: dict | None) -> None:
         print("\n  [Evaluación final no disponible]")
         return
     print("\n  [Evaluación final G-Eval GPT-4]")
-    for key in ('perspective_taking', 'fantasy', 'personal_distress', 'relevance', 'semantically_appropriate'):
+    for key in ('perspective_taking', 'empathic_concern', 'fantasy', 'personal_distress'):
         item = ev.get(key, {})
         print(f"    {key}: {item.get('score', '?')}/5")
     print(f"    Composite: {ev.get('composite_score', '?')}/5")
