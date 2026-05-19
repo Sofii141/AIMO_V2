@@ -32,6 +32,9 @@ const PHASES = {
 
 const USE_API = true;
 
+/** Tope de turnos de recolección — debe coincidir con MAX_GATHERING_TURNS en api.py */
+const MAX_GATHERING_TURNS = 5;
+
 /** Respuesta mock para desarrollo sin backend */
 function mockResponse() {
   return {
@@ -121,12 +124,20 @@ export default function App() {
         data = mockResponse();
       }
 
+      // Cuando el pipeline cierra (phase === "complete"), data.response contiene
+      // las recomendaciones finales en Markdown. Esas se muestran en el modal,
+      // no en el chat — el chat recibe solo una despedida corta.
+      const pipelineDone = data.phase === "complete";
+      const chatText = pipelineDone
+        ? "He preparado un mensaje con lo que escuché y algunas ideas para ti. Ábrelo cuando quieras."
+        : data.response;
+
       const newMsg = {
         role:           "aimo",
-        text:           data.response,
+        text:           chatText,
         evaluation:     data.evaluation     ?? null,
-        classification: data.classification ?? null,  // clasificación de riesgo (compañeros)
-        thinking:       data.thinking       ?? null,  // cadena de pensamiento <think> (compañeros)
+        classification: data.classification ?? null,
+        thinking:       data.thinking       ?? null,
       };
 
       setMessages((prev) => {
@@ -136,11 +147,10 @@ export default function App() {
       });
       setPhase(PHASES.RESPOND);
 
-      // Si el backend indica que el pipeline terminó (compañeros)
-      if (data.pipeline_complete) {
-        setFinalRecs(data.recommendations ?? null);
+      if (pipelineDone) {
+        setFinalRecs(data.response ?? null);
         setPipelineComplete(true);
-        if (data.recommendations) setRecsOpen(true);
+        if (data.response) setRecsOpen(true);
       }
 
     } catch (err) {
@@ -188,6 +198,10 @@ export default function App() {
   ).length;
 
   const isComplete = phase === PHASES.COMPLETE || pipelineComplete;
+
+  // Turnos del usuario ya enviados (mensajes con role === "user").
+  const userTurnsSent  = messages.filter((m) => m.role === "user").length;
+  const turnsRemaining = Math.max(MAX_GATHERING_TURNS - userTurnsSent, 0);
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -251,6 +265,19 @@ export default function App() {
               AIMO puede cometer errores · No reemplaza a un profesional
             </span>
           </div>
+          {!isComplete && (
+            <div className="chat-limit-banner" role="status">
+              <span className="chat-limit-icon" aria-hidden>📌</span>
+              <span className="chat-limit-text">
+                Tienes <strong>{MAX_GATHERING_TURNS} mensajes</strong> para contarle a AIMO lo que sientes —
+                {' '}cuéntale lo más importante (qué te pasa, cómo te afecta y desde cuándo) para que pueda
+                acompañarte mejor.
+              </span>
+              <span className="chat-limit-counter" aria-label="Mensajes restantes">
+                {turnsRemaining}/{MAX_GATHERING_TURNS}
+              </span>
+            </div>
+          )}
           <div className="chat-scroll" role="log" aria-live="polite">
             {messages.length === 0 ? (
               <div className="chat-empty">AIMO está listo para escucharte.</div>

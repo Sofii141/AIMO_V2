@@ -696,6 +696,47 @@ body,
   letter-spacing: 1px;
 }
 
+.chat-limit-banner {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.chat-limit-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.chat-limit-text {
+  flex: 1;
+}
+
+.chat-limit-text strong {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.chat-limit-counter {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  background: var(--accent);
+  color: #0e131e;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  border-radius: 3px;
+  font-family: var(--font-body);
+}
+
 .chat-scroll {
   flex: 1;
   overflow-y: auto;
@@ -1657,6 +1698,90 @@ body,
 
 .rec-spacer {
   height: 8px;
+}
+
+.rec-markdown {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.7;
+}
+
+.rec-markdown h2 {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 14px 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+  letter-spacing: 0.02em;
+}
+
+.rec-markdown h2:first-child {
+  margin-top: 0;
+}
+
+.rec-markdown p {
+  margin: 6px 0;
+}
+
+.rec-markdown ol {
+  list-style: none;
+  counter-reset: rec-item;
+  padding-left: 0;
+  margin: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rec-markdown ol > li {
+  counter-increment: rec-item;
+  position: relative;
+  padding: 8px 10px 8px 36px;
+  border-left: 3px solid var(--accent);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 0 4px 4px 0;
+}
+
+.rec-markdown ol > li::before {
+  content: counter(rec-item);
+  position: absolute;
+  left: 10px;
+  top: 8px;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: var(--font-body);
+}
+
+.rec-markdown ol > li > p {
+  margin: 0;
+}
+
+.rec-markdown strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.rec-markdown blockquote {
+  margin: 14px 0 4px;
+  padding: 10px 14px;
+  border-left: 3px solid var(--accent);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 0 4px 4px 0;
+  font-style: normal;
+  color: var(--text);
+}
+
+.rec-markdown blockquote p {
+  margin: 0;
+}
+
+.rec-markdown a {
+  color: var(--accent);
+  text-decoration: underline;
+  word-break: break-all;
 }
 
 .rec-footer {
