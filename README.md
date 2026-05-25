@@ -45,7 +45,7 @@ El sistema implementa una **arquitectura de 3 agentes en cascada** con evaluaci�
 │  │                                                          │  │
 │  │  1. AGENTE DE CONTEXTO (Groq - LLaMA 3.3-70B)         │  │
 │  │     ├─ Multi-turn conversation                         │  │
-│  │     ├─ Gathering phase (0-3 turnos)                   │  │
+│  │     ├─ Gathering phase (máx. 5 turnos, cap duro)      │  │
 │  │     └─ Evaluación intermedia (GPT-3.5)               │  │
 │  │                                                          │  │
 │  │  2. CLASIFICADOR DE RIESGO (Groq)                     │  │
@@ -85,9 +85,9 @@ Usuario envía mensaje
     • Sugerencia inicial
     • Evaluación intermedia (GPT-3.5)
          │
-         ├─(0-3 turnos)──> Siguiente turno
+         ├─(LLM marca complete=true antes de 5)──> avanza
          │
-         ├─(turno 3+)
+         ├─(turno 5 alcanzado: cap duro)──> avanza con contexto parcial
          ▼
   [CLASIFICADOR RIESGO]
     • Análisis de indicadores

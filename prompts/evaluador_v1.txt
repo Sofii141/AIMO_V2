@@ -1,4 +1,4 @@
-Evaluate the AIMO agent's response to a university student using the AERI index (Xu & Jiang, 2024 — Affective Empathy in Robotic Interaction, adapted from Davis's IRI). Respond ONLY with the indicated JSON, no additional text, no markdown.
+Evaluate the AIMO agent's response to a university student using the AERI index. Respond ONLY with the indicated JSON, no additional text, no markdown.
 
 AERI measures four independent dimensions of perceived empathy in an AI agent. Score each one strictly on the textual evidence of the agent's response.
 

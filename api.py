@@ -51,6 +51,11 @@ from src.logger import get_logger
 
 logger = get_logger("aimo.api")
 
+# Maximum gathering turns before forcing the pipeline to advance to
+# classification + recommendations. Keeps session length bounded and
+# preserves a predictable UX. Mirrored in the frontend banner.
+MAX_GATHERING_TURNS = 5
+
 app = Flask(__name__)
 
 CORS(app,
@@ -129,6 +134,20 @@ def chat():
         session["context_data"] = context_json
 
     is_complete = bool(context_json and context_json.get("complete", False))
+
+    # Hard cap: force completion when the gathering turn limit is reached,
+    # even if the LLM did not mark complete=true. Bounds session cost and
+    # matches the user-facing banner in the frontend.
+    if not is_complete and turno_num >= MAX_GATHERING_TURNS:
+        logger.info(
+            "Cap de %d turnos alcanzado en sesión %s — forzando cierre",
+            MAX_GATHERING_TURNS, session_id,
+        )
+        is_complete = True
+        if session["context_data"] is None:
+            session["context_data"] = context_json or {}
+        if isinstance(session["context_data"], dict):
+            session["context_data"]["complete"] = True
 
     # ── Moderation: intermediate response ────────────────────────────────────
     es_segura_inter, cats_inter = moderar_salida(visible_response)
