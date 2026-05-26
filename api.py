@@ -60,7 +60,7 @@ app = Flask(__name__)
 
 CORS(app,
      origins=["http://localhost:3000", "http://localhost:5173",
-              "https://aimo-amber.vercel.app", "https://aimo-production-c6ad.up.railway.app"],
+              "https://aimo-v2.onrender.com"],
      methods=["GET", "POST", "OPTIONS"],
      allow_headers=["Content-Type"])
 
