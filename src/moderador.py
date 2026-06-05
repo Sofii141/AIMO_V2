@@ -49,11 +49,15 @@ BLOCKED_CATEGORIES: set[str] = {
 THRESHOLD = 0.5
 
 # Safe fallback shown to the student when moderation triggers.
+# Uses LOCAL crisis resources (Cauca/Valle, Colombia) — never foreign hotlines.
 FALLBACK_MENSAJE = (
-    "Lo siento, no pude generar una respuesta adecuada en este momento. "
-    "Te invito a comunicarte directamente con el servicio de psicología de la "
-    "Universidad del Cauca, donde podrás recibir acompañamiento profesional de "
-    "forma confidencial:\n"
+    "Estoy aquí contigo y no estás solo/a en esto. Si sientes que estás en peligro "
+    "o que no puedes más, por favor busca apoyo ahora mismo:\n"
+    "• Línea 106 (Valle del Cauca): apoyo en crisis 24 horas, confidencial. Marca 106.\n"
+    "• Hospital Universitario San José: (602) 8234508 — extensión 100 (Urgencias) "
+    "o extensión 138 (Unidad de Salud Mental).\n"
+    "• Servicio de psicología de la Universidad del Cauca, acompañamiento profesional "
+    "confidencial:\n"
     "https://portal.unicauca.edu.co/versionP/bienestar-universitario/"
     "salud-para-estudiantes/psicologia-y-psiquiatria"
 )

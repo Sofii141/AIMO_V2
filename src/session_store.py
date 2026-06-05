@@ -1,11 +1,17 @@
 """
-Session Store — AIMO (academic analysis)
-─────────────────────────────────────────
-Persists conversation sessions as JSON files in data/sessions/. 
-Designed for academic analysis: each file contains the full interaction
-record including per-turn intermediate evaluations and final metrics.
+Session Store — AIMO (opt-in academic analysis)
+────────────────────────────────────────────────
+Builds an in-memory session record (per-turn evaluations, context object,
+risk classification, final metrics). Writing that record to disk is OPT-IN
+and DISABLED BY DEFAULT.
 
-Each session file: data/sessions/{session_id}.json
+⚠️  Conversation data is NEVER written to disk in production. Persistence only
+happens when the environment variable AIMO_PERSIST_SESSIONS is explicitly set
+to a truthy value (1/true/yes/on) — intended solely for local academic
+analysis. Production deployments leave this variable unset, so no sensitive
+mental-health conversation content ever touches the filesystem.
+
+When enabled, each session file: data/sessions/{session_id}.json
 
 Schema overview:
   session_id              : str
@@ -30,8 +36,21 @@ from src.logger import get_logger
 
 logger = get_logger("aimo.session_store")
 
+# Directory used ONLY when persistence is explicitly enabled. It is created
+# lazily inside guardar_sesion(), never at import time, so production never
+# creates an empty sessions directory on disk.
 _SESSIONS_DIR = Path(__file__).parent.parent / "data" / "sessions"
-_SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _persistence_enabled() -> bool:
+    """True only when AIMO_PERSIST_SESSIONS is explicitly truthy.
+
+    Defaults to False so that production (where the variable is unset) never
+    persists any conversation data.
+    """
+    return os.getenv("AIMO_PERSIST_SESSIONS", "false").strip().lower() in (
+        "1", "true", "yes", "on",
+    )
 
 
 def _now_iso() -> str:
@@ -141,7 +160,20 @@ def finalizar_sesion(
 
 
 def guardar_sesion(record: dict) -> None:
-    """Writes the session record to disk as JSON."""
+    """Writes the session record to disk as JSON — ONLY when persistence is
+    explicitly enabled via AIMO_PERSIST_SESSIONS.
+
+    In production the variable is unset, so this is a no-op and no conversation
+    data is ever written to disk.
+    """
+    if not _persistence_enabled():
+        logger.debug(
+            "Persistencia deshabilitada — sesión %s no se guarda en disco",
+            record.get("session_id"),
+        )
+        return
+
+    _SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
     path = _session_path(record["session_id"])
     try:
         with open(path, 'w', encoding='utf-8') as f:
